@@ -11,7 +11,7 @@ export class MiddlewareService {
     try {
       const token = req.headers.authorization
       if (token) {
-        const currentUser = await UserService.findByToken(
+        const currentUser: UserService = await UserService.findByToken(
           token.replace('Bearer', '').trim(),
         )
         if (!currentUser) {
