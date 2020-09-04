@@ -1,9 +1,8 @@
 import { Response, Request, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import httpContext from 'express-http-context'
 
-import { User } from './user'
-import { expirationTime } from './utils'
+import { User } from '../users/user'
+import { expirationTime } from '../utils'
 
 export const checkAuth = async (
   req: Request,
@@ -26,15 +25,17 @@ export const checkAuth = async (
         {
           maxAge: expirationTime,
         },
-        (err) => {
+        (err: Error) => {
           if (err) {
             console.error(err)
-            res.status(403).send('Not authorized').end()
+            res
+              .status(403)
+              .send('Not authorized')
+              .end()
             return
           }
         },
       )
-      httpContext.set('user', currentUser)
       next()
     } else {
       throw new Error('Token not provided')

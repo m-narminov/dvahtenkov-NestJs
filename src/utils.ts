@@ -2,18 +2,19 @@ import fs from 'fs'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 
-import { User } from './user'
-import { CreateUserDto, UpdateUserDto, ValidateUserDto } from './dto'
+// import { User } from './users'
+import { ValidateUserDto } from './dto'
+import { UserService } from './users/user.service'
 
-export const usersFile: string = 'assets/users.json'
-export const filesPath: string = 'uploads/'
+export const usersFile = 'assets/users.json'
+export const filesPath = 'uploads/'
 export const expirationTime = '4h' // must be 4h
 
 export interface UserContent {
-  users: User[]
+  users: UserService[]
   currentId: number
 }
-export interface emailPassword {
+export interface EmailPassword {
   email: string
   password: string
 }
@@ -22,7 +23,7 @@ export const getFileContent = async (fileName: string) => {
   const usersContent = await fs.promises.readFile(fileName, {
     encoding: 'utf8',
   })
-  let result: UserContent = JSON.parse(usersContent)
+  const result: UserContent = JSON.parse(usersContent)
   return result
 }
 
@@ -42,7 +43,7 @@ export const createPassword = (passwordStr: string): string =>
     .digest('hex')
 
 export const createToken = (
-  payload: string | object | Buffer,
+  payload: Record<string, unknown>,
   secret: jwt.Secret,
   options?: jwt.SignOptions | undefined,
 ): string => jwt.sign(payload, secret, options)
@@ -53,10 +54,3 @@ export const validateUser = (user: ValidateUserDto): boolean | void => {
   if (!user.password) throw new Error('Password is required')
   return true
 }
-
-export const isSameUser = (userA: User, userB: User): boolean =>
-  !!validateUser(userA) &&
-  !!validateUser(userB) &&
-  userA.name === userB.name &&
-  userA.email === userB.email &&
-  userA.password === userB.password

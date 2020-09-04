@@ -1,22 +1,20 @@
 import { Injectable } from '@nestjs/common'
-import httpContext from 'express-http-context'
-import { CreateUserDto, UpdateUserDto } from './dto'
+import { CreateUserDto } from '../dto'
 
 import {
   getFileContent,
   setFileContent,
-  emailPassword,
+  EmailPassword,
   UserContent,
   usersFile,
   createPassword,
   createToken,
   validateUser,
-  isSameUser,
   expirationTime,
-} from './utils'
+} from '../utils'
 
 @Injectable()
-export class User {
+export class UserService {
   id: number
   name: string
   email: string
@@ -46,10 +44,12 @@ export class User {
     validateUser(user)
 
     const usersContent: UserContent = await getFileContent(usersFile)
+    const users = usersContent.users
     const newCurrentId = usersContent.currentId + 1
     const newUser = new User(newCurrentId, name, email, password, enabled)
-    const currentUser = httpContext.get('user')
-    if (isSameUser(newUser, currentUser)) throw new Error('User already exist')
+    const currentUser = users.find(usr => usr.email === newUser.email)
+
+    if (currentUser) throw new Error('User already exist')
 
     const newContent: UserContent = {
       users: [...usersContent.users, newUser],
@@ -80,7 +80,7 @@ export class User {
     return users
   }
 
-  static async update(user: UpdateUserDto) {
+  static async update(user: User) {
     if (user.id === undefined) throw new Error('User has no id')
     const updatedUser = user
     const usersContent = await getFileContent(usersFile)
@@ -94,7 +94,7 @@ export class User {
     setFileContent(usersFile, newUsersContent)
   }
 
-  static async login(emailPassword: emailPassword) {
+  static async login(emailPassword: EmailPassword) {
     const { email, password } = emailPassword
 
     const passwordHash = createPassword(password)
@@ -111,7 +111,6 @@ export class User {
     })
 
     await this.update({ ...foundUser, token })
-
     return token
   }
 }
