@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Next, Req, Res } from '@nestjs/common'
 import { Response, Request, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
