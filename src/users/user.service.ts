@@ -34,7 +34,7 @@ export class UserService {
     this.email = email
     this.password = createPassword(password)
     this.enabled = enabled
-    this.token = createToken(id.toString(), this.password, {
+    this.token = createToken({ data: id }, this.password, {
       expiresIn: expirationTime,
     })
   }
@@ -46,7 +46,13 @@ export class UserService {
     const usersContent: UserContent = await getFileContent(usersFile)
     const users = usersContent.users
     const newCurrentId = usersContent.currentId + 1
-    const newUser = new User(newCurrentId, name, email, password, enabled)
+    const newUser = new UserService(
+      newCurrentId,
+      name,
+      email,
+      password,
+      enabled,
+    )
     const currentUser = users.find(usr => usr.email === newUser.email)
 
     if (currentUser) throw new Error('User already exist')
@@ -70,7 +76,9 @@ export class UserService {
   static async findByToken(userToken: string) {
     const usersContent: UserContent = await getFileContent(usersFile)
     const users = usersContent.users
-    const foundUser = users.find((user: User) => user.token === userToken)
+    const foundUser = users.find(
+      (user: UserService) => user.token === userToken,
+    )
     return foundUser
   }
 
@@ -80,7 +88,7 @@ export class UserService {
     return users
   }
 
-  static async update(user: User) {
+  static async update(user: UserService) {
     if (user.id === undefined) throw new Error('User has no id')
     const updatedUser = user
     const usersContent = await getFileContent(usersFile)

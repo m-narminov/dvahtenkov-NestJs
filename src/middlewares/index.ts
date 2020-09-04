@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 
-import { User } from '../users/user'
+import { UserService } from '../users/user.service'
 import { expirationTime } from '../utils'
 
 export const checkAuth = async (
@@ -12,7 +12,7 @@ export const checkAuth = async (
   try {
     const token = req.headers.authorization
     if (token) {
-      const currentUser = await User.findByToken(
+      const currentUser = await UserService.findByToken(
         token.replace('Bearer', '').trim(),
       )
       if (!currentUser) {
