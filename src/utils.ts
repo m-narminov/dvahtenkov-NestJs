@@ -4,14 +4,14 @@ import jwt from 'jsonwebtoken'
 
 // import { User } from './users'
 import { ValidateUserDto } from './dto'
-import { UserService } from './users/user.service'
+import { IUser } from './interfaces'
 
 export const usersFile = 'assets/users.json'
 export const filesPath = 'uploads/'
 export const expirationTime = '4h' // must be 4h
 
 export interface UserContent {
-  users: UserService[]
+  users: IUser[]
   currentId: number
 }
 export interface EmailPassword {

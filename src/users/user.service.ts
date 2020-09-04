@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { CreateUserDto } from '../dto'
+import { CreateUserDto, UpdateUserDto } from '../dto'
 
 import {
   getFileContent,
@@ -12,48 +12,29 @@ import {
   validateUser,
   expirationTime,
 } from '../utils'
+import { IUser } from '../interfaces'
 
 @Injectable()
 export class UserService {
-  id: number
-  name: string
-  email: string
-  password: string
-  enabled: boolean
-  token: string
-
-  constructor(
-    id: number,
-    name: string,
-    email: string,
-    password: string,
-    enabled = true,
-  ) {
-    this.id = id
-    this.name = name
-    this.email = email
-    this.password = createPassword(password)
-    this.enabled = enabled
-    this.token = createToken({ data: id }, this.password, {
-      expiresIn: expirationTime,
-    })
-  }
-
   static async add(user: CreateUserDto) {
     const { name, email, password, enabled } = user
     validateUser(user)
-
+    const generatedPassword = createPassword(password)
     const usersContent: UserContent = await getFileContent(usersFile)
-    const users = usersContent.users
+    const users: IUser[] = usersContent.users
     const newCurrentId = usersContent.currentId + 1
-    const newUser = new UserService(
-      newCurrentId,
+    const token = createToken({ data: newCurrentId }, generatedPassword, {
+      expiresIn: expirationTime,
+    })
+    const newUser = {
+      id: newCurrentId,
       name,
       email,
       password,
       enabled,
-    )
-    const currentUser = users.find(usr => usr.email === newUser.email)
+      token,
+    }
+    const currentUser: IUser = users.find(usr => usr.email === newUser.email)
 
     if (currentUser) throw new Error('User already exist')
 
@@ -76,9 +57,7 @@ export class UserService {
   static async findByToken(userToken: string) {
     const usersContent: UserContent = await getFileContent(usersFile)
     const users = usersContent.users
-    const foundUser = users.find(
-      (user: UserService) => user.token === userToken,
-    )
+    const foundUser = users.find((user: IUser) => user.token === userToken)
     return foundUser
   }
 
@@ -88,11 +67,11 @@ export class UserService {
     return users
   }
 
-  static async update(user: UserService) {
+  static async update(user: UpdateUserDto) {
     if (user.id === undefined) throw new Error('User has no id')
     const updatedUser = user
     const usersContent = await getFileContent(usersFile)
-    const currentUsers = usersContent.users
+    const currentUsers: IUser[] = usersContent.users
     const newUsers = currentUsers.filter(user => user.id !== updatedUser.id)
     const newUsersContent = {
       ...usersContent,

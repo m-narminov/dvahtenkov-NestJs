@@ -11,6 +11,7 @@ export class UpdateUserDto {
   email: string
   password: string
   enabled: boolean
+  token: string
 }
 
 export class ValidateUserDto {

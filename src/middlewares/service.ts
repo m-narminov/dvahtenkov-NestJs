@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 
 import { UserService } from '../users/user.service'
 import { expirationTime } from '../utils'
+import { IUser } from 'src/interfaces'
 
 @Injectable()
 export class MiddlewareService {
@@ -11,7 +12,7 @@ export class MiddlewareService {
     try {
       const token = req.headers.authorization
       if (token) {
-        const currentUser: UserService = await UserService.findByToken(
+        const currentUser: IUser = await UserService.findByToken(
           token.replace('Bearer', '').trim(),
         )
         if (!currentUser) {
