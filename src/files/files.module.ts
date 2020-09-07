@@ -5,8 +5,6 @@ import { UserModule } from '../users/user.module'
 
 @Module({
   imports: [UserModule],
-  providers: [FileService],
   controllers: [FileController],
-  // exports: [FileController],
 })
 export class FileModule {}

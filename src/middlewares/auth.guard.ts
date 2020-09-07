@@ -20,6 +20,8 @@ export class AuthGuard implements CanActivate {
         if (!currentUser) {
           throw new Error('User not found')
         }
+
+        if (!currentUser.enabled) return false
         jwt.verify(
           currentUser.token,
           currentUser.password,
