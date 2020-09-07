@@ -74,7 +74,12 @@ export class UserService {
     const currentUsers: IUser[] = usersContent.users
     const oldUser = currentUsers.find(user => user.id === +id)
     if (!oldUser) throw new Error('User not found')
-    const updatedUser = { id: +id, ...user, password, token: oldUser.token }
+    const updatedUser = {
+      id: +id,
+      ...user,
+      password,
+      token: oldUser.token,
+    }
     const newUsers = currentUsers.filter(user => +user.id !== +updatedUser.id)
     const newUsersContent = {
       ...usersContent,
@@ -87,21 +92,36 @@ export class UserService {
 
   async login(emailPassword: EmailPassword) {
     const { email, password } = emailPassword
-
     const passwordHash = createPassword(password)
-    const usersContent: UserContent = await getFileContent(usersFile)
 
-    const foundUser = usersContent.users.find(
+    const token = await this.updateToken(email, passwordHash)
+    return token
+  }
+
+  async updateToken(email: string, password: string) {
+    const usersContent: UserContent = await getFileContent(usersFile)
+    const currentUsers: IUser[] = usersContent.users
+
+    const foundUser = currentUsers.find(
       (usr: { email: string; password: string }) =>
-        usr.email === email && usr.password === passwordHash,
+        usr.email === email && usr.password === password,
     )
     if (!foundUser) throw new Error('User not found')
 
-    const token: string = createToken({ data: foundUser.id }, passwordHash, {
+    const token: string = createToken({ data: foundUser.id }, password, {
       expiresIn: expirationTime,
     })
+    const userNewToken = {
+      ...foundUser,
+      token,
+    }
 
-    await this.update({ ...foundUser, token }, foundUser.id)
+    const newUsers = currentUsers.filter(user => +user.id !== +userNewToken.id)
+    const newUsersContent = {
+      ...usersContent,
+      users: [...newUsers, userNewToken],
+    }
+    setFileContent(usersFile, newUsersContent)
     return token
   }
 }
