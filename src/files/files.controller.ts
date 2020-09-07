@@ -6,19 +6,21 @@ import {
   Post,
   Get,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common'
 import { Request, Response } from 'express'
-import formidable from 'formidable'
-import fs from 'fs'
+import * as formidable from 'formidable'
+import * as fs from 'fs'
 
-import { filesPath } from '../utils'
+import { filesPath, extensionRegex } from '../utils'
+import { AuthGuard } from '../middlewares/auth.guard'
 
 @Controller('file')
 export class FileController {
   @Post()
+  @UseGuards(AuthGuard)
   async uploadFile(@Req() req: Request, @Res() res: Response) {
     const form = new formidable.IncomingForm()
-
     form.parse(req, (err, fields, files): void => {
       if (err) {
         console.error(err)
@@ -29,9 +31,12 @@ export class FileController {
         return
       }
 
-      let fileName = files.file.name
-      const uploadFilePath = files.file.path
-      const uploadFileName = files.file.name
+      const keyOfFile = Object.keys(files)[0]
+      let fileName = files[keyOfFile].name
+      const uploadFilePath = files[keyOfFile].path
+      const uploadFileName = files[keyOfFile].name
+      const uploadFileExtensionIndex = uploadFileName.search(extensionRegex)
+      const uploadFileExtension = uploadFileName.slice(uploadFileExtensionIndex)
       const base64FileName = Buffer.from(uploadFileName, 'utf-8').toString(
         'base64',
       )
@@ -39,30 +44,39 @@ export class FileController {
         fileName = `${new Date()}`
       }
       const rawData = fs.readFileSync(uploadFilePath)
-      fs.writeFile(`${filesPath}${base64FileName}`, rawData, err => {
-        if (err) {
-          res
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .send('upload error')
-            .end()
-          return
-        }
+      fs.writeFile(
+        `${filesPath}${base64FileName}.${uploadFileExtension}`,
+        rawData,
+        err => {
+          if (err) {
+            res
+              .status(HttpStatus.INTERNAL_SERVER_ERROR)
+              .send('upload error')
+              .end()
+            return
+          }
 
-        res
-          .status(200)
-          .send(`File ${fileName} uploaded`)
-          .end()
-      })
+          res
+            .status(200)
+            .send(`File ${fileName} uploaded`)
+            .end()
+        },
+      )
     })
   }
 
   @Get(':name')
+  @UseGuards(AuthGuard)
   async downloadFile(@Param('name') name: string, @Res() res: Response) {
     if (name.trim() === '') {
       return res.status(HttpStatus.NOT_FOUND)
     }
+
+    const fileExtensionIndex = name.search(extensionRegex)
+    const fileExtension = name.slice(fileExtensionIndex)
+
     const base64FileName = Buffer.from(name, 'utf-8').toString('base64')
-    res.download(`${filesPath}${base64FileName}`, err => {
+    res.download(`${filesPath}${base64FileName}.${fileExtension}`, err => {
       if (err) {
         res
           .status(HttpStatus.INTERNAL_SERVER_ERROR)

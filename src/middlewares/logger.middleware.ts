@@ -9,7 +9,7 @@ export class LoggerMiddleware implements NestMiddleware {
       res.on('finish', () => {
         const endTime: number = new Date().getTime()
         const diff: number = (endTime - startTime) / 1000
-        console.log('request duration: ', diff + 's')
+        console.log('Request duration: ', diff + 's')
       })
 
       next()

@@ -24,6 +24,7 @@ export class UserController {
   }
 
   @Post()
+  @UseGuards(AuthGuard)
   async createUser(@Body() createUserDto: CreateUserDto): Promise<IUser> {
     return await this.userService.add(createUserDto)
   }
@@ -34,7 +35,7 @@ export class UserController {
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return await this.userService.update(updateUserDto)
+    return await this.userService.update(updateUserDto, id)
   }
 
   @Post('login')

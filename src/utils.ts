@@ -9,6 +9,7 @@ import { IUser } from './interfaces'
 export const usersFile = 'assets/users.json'
 export const filesPath = 'uploads/'
 export const expirationTime = '4h' // must be 4h
+export const extensionRegex = /\.[A-Za-z]+$/g
 
 export interface UserContent {
   users: IUser[]

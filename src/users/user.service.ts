@@ -67,14 +67,15 @@ export class UserService {
     return users
   }
 
-  async update(user: UpdateUserDto) {
-    if (user.id === undefined) throw new Error('User has no id')
+  async update(user: UpdateUserDto, id: number) {
+    if (id === undefined) throw new Error('User has no id')
     const password = createPassword(user.password)
     const usersContent = await getFileContent(usersFile)
     const currentUsers: IUser[] = usersContent.users
-    const oldUser = currentUsers.find(usr => usr.id === user.id)
-    const updatedUser = { ...user, password, token: oldUser.token }
-    const newUsers = currentUsers.filter(user => user.id !== updatedUser.id)
+    const oldUser = currentUsers.find(user => user.id === +id)
+    if (!oldUser) throw new Error('User not found')
+    const updatedUser = { id: +id, ...user, password, token: oldUser.token }
+    const newUsers = currentUsers.filter(user => +user.id !== +updatedUser.id)
     const newUsersContent = {
       ...usersContent,
       users: [...newUsers, updatedUser],
@@ -100,7 +101,7 @@ export class UserService {
       expiresIn: expirationTime,
     })
 
-    await this.update({ ...foundUser, token })
+    await this.update({ ...foundUser, token }, foundUser.id)
     return token
   }
 }
