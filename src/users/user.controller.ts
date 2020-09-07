@@ -1,30 +1,44 @@
-import { Body, Get, Post, Put, Param, Controller } from '@nestjs/common'
+import {
+  Body,
+  Get,
+  Post,
+  Put,
+  Param,
+  Controller,
+  UseGuards,
+} from '@nestjs/common'
 
 import { CreateUserDto, LoginDto, UpdateUserDto } from '../dto'
 import { UserService } from './user.service'
+import { IUser } from '../interfaces'
+import { AuthGuard } from 'src/middlewares/auth.guard'
 
-@Controller()
+@Controller('user')
 export class UserController {
-  @Get('user')
-  async getHello(): Promise<UserService[]> {
-    return await UserService.findAll()
+  constructor(private readonly userService: UserService) {}
+
+  @Get()
+  @UseGuards(AuthGuard)
+  async getHello(): Promise<IUser[]> {
+    return await this.userService.findAll()
   }
 
-  @Post('user')
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<UserService> {
-    return await UserService.add(createUserDto)
+  @Post()
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<IUser> {
+    return await this.userService.add(createUserDto)
   }
 
-  @Put('user/:id')
+  @Put(':id')
+  @UseGuards(AuthGuard)
   async updateUser(
     @Param('id') id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return await UserService.update(updateUserDto)
+    return await this.userService.update(updateUserDto)
   }
 
-  @Post('user/login')
+  @Post('login')
   async loginUser(@Body() loginDto: LoginDto): Promise<string> {
-    return await UserService.login(loginDto)
+    return await this.userService.login(loginDto)
   }
 }

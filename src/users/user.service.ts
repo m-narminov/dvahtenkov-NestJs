@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { CreateUserDto, UpdateUserDto } from '../dto'
 
+import { CreateUserDto, UpdateUserDto } from '../dto'
+import { IUser } from '../interfaces'
 import {
   getFileContent,
   setFileContent,
@@ -12,11 +13,10 @@ import {
   validateUser,
   expirationTime,
 } from '../utils'
-import { IUser } from '../interfaces'
 
 @Injectable()
 export class UserService {
-  static async add(user: CreateUserDto) {
+  async add(user: CreateUserDto) {
     const { name, email, password, enabled } = user
     validateUser(user)
     const generatedPassword = createPassword(password)
@@ -30,7 +30,7 @@ export class UserService {
       id: newCurrentId,
       name,
       email,
-      password,
+      password: generatedPassword,
       enabled,
       token,
     }
@@ -46,7 +46,7 @@ export class UserService {
     return newUser
   }
 
-  static async findById(id: number) {
+  async findById(id: number) {
     const usersContent: UserContent = await getFileContent(usersFile)
     const foundUser = usersContent.users.find(
       (usr: { id: number }) => usr.id === id,
@@ -54,24 +54,26 @@ export class UserService {
     return foundUser
   }
 
-  static async findByToken(userToken: string) {
+  async findByToken(userToken: string) {
     const usersContent: UserContent = await getFileContent(usersFile)
     const users = usersContent.users
     const foundUser = users.find((user: IUser) => user.token === userToken)
     return foundUser
   }
 
-  static async findAll() {
+  async findAll() {
     const usersContent: UserContent = await getFileContent(usersFile)
     const users = usersContent.users
     return users
   }
 
-  static async update(user: UpdateUserDto) {
+  async update(user: UpdateUserDto) {
     if (user.id === undefined) throw new Error('User has no id')
-    const updatedUser = user
+    const password = createPassword(user.password)
     const usersContent = await getFileContent(usersFile)
     const currentUsers: IUser[] = usersContent.users
+    const oldUser = currentUsers.find(usr => usr.id === user.id)
+    const updatedUser = { ...user, password, token: oldUser.token }
     const newUsers = currentUsers.filter(user => user.id !== updatedUser.id)
     const newUsersContent = {
       ...usersContent,
@@ -79,9 +81,10 @@ export class UserService {
     }
 
     setFileContent(usersFile, newUsersContent)
+    return updatedUser
   }
 
-  static async login(emailPassword: EmailPassword) {
+  async login(emailPassword: EmailPassword) {
     const { email, password } = emailPassword
 
     const passwordHash = createPassword(password)

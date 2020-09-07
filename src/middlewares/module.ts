@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common'
-import { MiddlewareService } from './service'
-import { UserModule } from 'src/users/user.module'
+import { Module, Global } from '@nestjs/common'
+import { LoggerMiddleware } from './logger.middleware'
+import { AuthGuard } from './auth.guard'
+import { UserModule } from '../users/user.module'
 
+@Global()
 @Module({
   imports: [UserModule],
-  providers: [MiddlewareService],
-  exports: [MiddlewareService],
+  providers: [LoggerMiddleware, AuthGuard],
+  exports: [LoggerMiddleware, AuthGuard],
 })
 export class MiddlewaresModule {}
