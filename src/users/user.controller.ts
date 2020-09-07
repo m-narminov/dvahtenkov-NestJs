@@ -24,7 +24,6 @@ export class UserController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
   async createUser(@Body() createUserDto: CreateUserDto): Promise<IUser> {
     return await this.userService.add(createUserDto)
   }
