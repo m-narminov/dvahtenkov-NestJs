@@ -69,15 +69,17 @@ export class UserService {
 
   async update(user: UpdateUserDto, id: number) {
     if (id === undefined) throw new Error('User has no id')
-    const password = createPassword(user.password)
+    const password = user.password ? createPassword(user.password) : ''
     const usersContent = await getFileContent(usersFile)
     const currentUsers: IUser[] = usersContent.users
     const oldUser = currentUsers.find(user => user.id === +id)
     if (!oldUser) throw new Error('User not found')
     const updatedUser = {
       id: +id,
-      ...user,
-      password,
+      name: user.name ? user.name : oldUser.name,
+      password: user.password ? password : oldUser.password,
+      email: user.email ? user.email : oldUser.email,
+      enabled: user.enabled ? user.enabled : oldUser.enabled,
       token: oldUser.token,
     }
     const newUsers = currentUsers.filter(user => +user.id !== +updatedUser.id)
@@ -87,7 +89,6 @@ export class UserService {
     }
 
     setFileContent(usersFile, newUsersContent)
-    return updatedUser
   }
 
   async login(emailPassword: EmailPassword) {

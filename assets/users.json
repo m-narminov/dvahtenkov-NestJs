@@ -2,11 +2,11 @@
   "users": [
     {
       "id": 0,
-      "name": "put user data",
+      "name": "new data",
+      "password": "81dc9bdb52d04dc20036dbd8313ed055",
       "email": "123@mail.com",
-      "password": "202cb962ac59075b964b07152d234b70",
       "enabled": false,
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjowLCJpYXQiOjE1OTk0ODg5MDUsImV4cCI6MTU5OTUwMzMwNX0.Tj8bqnRPORvNXhjKNJOTyykaxJniFzVpvlyQassvu_c"
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjowLCJpYXQiOjE1OTk0ODg5NTAsImV4cCI6MTU5OTUwMzM1MH0.jkh3xk31Zwql4Q2wE1bNg9yVZsdsuwPR8j2GPmtpm2Q"
     }
   ],
   "currentId": 18
